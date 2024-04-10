@@ -21,7 +21,4 @@ def coin_flip():
     def main():
         # Repeat 100 times
         for _ in range(100):
-            if coin_flip() == "heads":
-    
-
-main()
+            if coin_flip() == "heads"
