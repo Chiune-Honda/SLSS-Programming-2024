@@ -11,6 +11,31 @@ class Pokemon: # alawys name classes with capital
         self.id = 0
         self.weight= 0 
         self.type = "Normal"
+        self.actual_cry = "Rooooooooooooar"
+
+
+    def cry(self) -> str:
+        """Represents the noise a Pokemon makes
+
+        Returns:
+            -As a string the sound a pokemon makes
+            -e.g, "{name} says, "{actual_cry}"""
+        return f'{self.name} says, "{self.actual_cry}!"'
+    def consume(self, item: str) -> str:
+        """Pokemon cosumes the item
+        
+        Params:
+            - the item the pokemon consumes
+            
+        Retruns:
+            - the response of the pokemon
+            """
+        if item.lower() == "berry":
+            return f"{self.name} eats the berry and says, \"YUM\""
+        elif item.lower() == "potion":
+            return f"{self.name} feels much better after the potion!"
+        else:
+            return f"{self.name} batted away the {item}!"
 
 def main ():
     # Create two Pokemon
@@ -46,6 +71,15 @@ def main ():
     print(pokemon_two.name)
     print(pokemon_two.type)
     print(pokemon_two.id)
+
+    # Test Pokemon Cry
+    print(pokemon_one.cry())
+    print(pokemon_two.cry())
+
+    # Test Pokemon consume
+    print(pokemon_one.consume("berry"))
+    print(pokemon_one.consume("potion"))
+    print(pokemon_one.consume("Poision"))
 
 if __name__ == "__main__":
     main()
