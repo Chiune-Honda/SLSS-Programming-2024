@@ -44,7 +44,7 @@ class Snowflake(pg.sprite.Sprite):
         
 
     def update(self):
-        # Update position of Dvdlogo
+        
         self.rect.y += self.vel_y
       
         if self.rect.top >= 720:
