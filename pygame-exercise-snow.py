@@ -42,7 +42,6 @@ class Snowflake(pg.sprite.Sprite):
         self.vel_x = 0
 
         
-
     def update(self):
         
         self.rect.y += self.vel_y
