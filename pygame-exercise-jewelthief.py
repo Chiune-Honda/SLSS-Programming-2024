@@ -24,6 +24,10 @@ NUM_COINS = 100
 
 NUM_TYLER = 5
 
+BURGER_IMAGE =  pg.image.load("./Images/image-removebg-preview.png")
+BURGER_IMAGE = pg.transform.scale(BURGER_IMAGE, (BURGER_IMAGE.get_width() // 3, BURGER_IMAGE.get_width() // 3))
+
+
 
 class Player(pg.sprite.Sprite):
     def __init__(self):
@@ -45,9 +49,7 @@ class Coin(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
 
-        self.image = pg.image.load("./Images/image-removebg-preview.png")
-        self.rect = self.image.get_rect()
-        self.image = pg.transform.scale(self.image, (self.rect.width // 3, self.rect.height // 3))
+        self.image = BURGER_IMAGE
         self.rect = self.image.get_rect()
 
 
