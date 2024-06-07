@@ -25,8 +25,12 @@ class PlayerL(pg.sprite.Sprite):
         # Super class constructor
         super().__init__()
 
-        self.image = pg.Surface((30, 70))
-        self.image.fill(BLACK)
+        # self.image = pg.Surface((25, 120))
+        # self.image.fill(BLACK)
+        self.image = pg.image.load("./images/crayonshinchanbestversionleft.png")
+        self.image = pg.transform.scale(
+            self.image, (self.image.get_width() // 2.75, self.image.get_height() // 2.75)
+        )
 
         self.rect = self.image.get_rect()
 
@@ -37,19 +41,19 @@ class PlayerL(pg.sprite.Sprite):
 
     def go_left(self):
             """ Called when the user hits the left arrow. """
-            self.change_x = -6        
+            self.rect.x -= 4        
     
     def go_right(self):
             """ Called when the user hits the right arrow. """
-            self.change_x = 6
+            self.rect.x += 4
 
     def go_up(self):
             """ Called when the user hits the left arrow. """
-            self.rect.y -= 2
+            self.rect.y -= 4
     
     def go_down(self):
             """ Called when the user hits the right arrow. """
-            self.rect.y += 2
+            self.rect.y += 4
     
     def stop(self):
             """ Called when the user lets off the keyboard. """
@@ -61,6 +65,12 @@ class PlayerL(pg.sprite.Sprite):
             self.rect.bottom = HEIGHT
         if self.rect.top < 0:
             self.rect.top = 0
+    def update(self):
+        """Keep the player in the screen"""
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > WIDTH / 2:
+            self.rect.right = WIDTH / 2
 
 
 class PlayerR(pg.sprite.Sprite):
@@ -68,9 +78,16 @@ class PlayerR(pg.sprite.Sprite):
         # Super class constructor
         super().__init__()
 
-        # Draw a circle inside of it
-        self.image = pg.Surface((30, 70))
-        self.image.fill(BLACK)
+        # # Draw a circle inside of it
+        # self.image = pg.Surface((25, 120))
+        # self.image.fill(BLACK)
+
+        self.image = pg.image.load("./images/crayon-shin-chan-right.png")
+        self.image = pg.transform.scale(
+            self.image, (self.image.get_width() // 1.75, self.image.get_height() // 1.75)
+        )
+
+
 
         self.rect = self.image.get_rect()
 
@@ -81,19 +98,19 @@ class PlayerR(pg.sprite.Sprite):
 
     def go_left(self):
             """ Called when the user hits the left arrow. """
-            self.change_x = -6
+            self.rect.x -= 4
     
     def go_right(self):
             """ Called when the user hits the right arrow. """
-            self.change_x = 6
+            self.rect.x += 4
 
     def go_up(self):
             """ Called when the user hits the left arrow. """
-            self.rect.y -= 2
+            self.rect.y -= 4
     
     def go_down(self):
             """ Called when the user hits the right arrow. """
-            self.rect.y += 2
+            self.rect.y += 4
 
     def stop(self):
             """ Called when the user lets off the keyboard. """
@@ -105,6 +122,13 @@ class PlayerR(pg.sprite.Sprite):
             self.rect.bottom = HEIGHT
         if self.rect.top < 0:
             self.rect.top = 0
+    def update(self):
+        """Keep the player in the screen"""
+        if self.rect.left < WIDTH / 2:
+            self.rect.left = WIDTH / 2
+        if self.rect.right > WIDTH:
+            self.rect.right = WIDTH
+
 
 
 
@@ -115,10 +139,21 @@ class Ball(pg.sprite.Sprite):
         super().__init__()
 
         # Draw a circle inside of it
-        self.image = pygame.Surface((30, 30))
-        # TODO: Make a circle
-        pygame.draw.circle(self.image, BLACK, (self.image.get_width() // 2, self.image.get_height() // 2), self.image.get_width() // 10)
-        # ball = pygame.Rect(WIDTH // 2 - 15, HEIGHT // 2 - 15, 30, 30)
+
+
+
+        self.radius = 15  # Radius of the ball
+        self.diameter = self.radius * 2
+        self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
+        pg.draw.circle(self.image, BLACK, (self.radius, self.radius), self.radius)
+
+        self.rect = self.image.get_rect()
+        
+        # self.rect.x, self.rect.y = WIDTH // 2 - self.radius, HEIGHT // 2 - self.rad
+        # self.image = pygame.Surface((30, 30))
+        # # TODO: Make a circle
+        # pygame.draw.circle(self.image, BLACK, (self.image.get_width() // 2, self.image.get_height() // 2), self.image.get_width() // 10)
+        # # ball = pygame.Rect(WIDTH // 2 - 15, HEIGHT // 2 - 15, 30, 30)
 
         self.ball_speed = [5, 5]
 
@@ -128,30 +163,17 @@ class Ball(pg.sprite.Sprite):
         # Move ball
         self.rect.x += self.ball_speed[0]
         self.rect.y += self.ball_speed[1]
-    
-    # # Ball collision with players
-    #     ball_collided = pg.sprite.spritecollide(playerleft, ball_sprites, True)
 
-    #     if ball_collided:
-    #         ball_speed[0] *= -1
+    def update(self):
+        # Move ball
+        self.rect.x += self.ball_speed[0]
+        self.rect.y += self.ball_speed[1]
 
-        # Ball collision with walls
-   
-
-
-        # playerleft = PlayerL()
-        # playerright = PlayerR()
-
-        # all_sprites = pg.sprite.Group()
-        # ball_sprites = pg.sprite.Group()
-
-        # all_sprites.add(playerleft)
-        # all_sprites.add(playerright)
-
-        # ball = Ball()
-
-        # all_sprites.add(ball)
-        # ball_sprites.add(ball)
+        # Check for collision with walls
+        if self.rect.left <= 0 or self.rect.right >= WIDTH:
+            self.ball_speed[0] *= -1
+        if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
+            self.ball_speed[1] *= -1
 
 # Game loop
 def start():
@@ -233,31 +255,50 @@ def start():
                 playerleft.go_up()
             if keys_pressed[pg.K_s]:
                 playerleft.go_down()
+            if keys_pressed[pg.K_a]:
+                playerleft.go_left()
+            if keys_pressed[pg.K_d]:
+                playerleft.go_right()
 
 
             if keys_pressed[pg.K_UP]:
                 playerright.go_up()
             if keys_pressed[pg.K_DOWN]:
                 playerright.go_down()
+            if keys_pressed[pg.K_LEFT]:
+                playerright.go_left()
+            if keys_pressed[pg.K_RIGHT]:
+                playerright.go_right()
+
+
+            if ball.rect.colliderect(playerleft):
+                if ball.ball_speed[0] < 0 and ball.rect.left < playerleft.rect.right:
+                    ball.rect.left = playerleft.rect.right
+                    ball.ball_speed[0] *= -1
+                if ball.ball_speed[0] > 0 and ball.rect.right > playerleft.rect.left:
+                    ball.rect.right = playerleft.rect.left
+                    ball.ball_speed[0] *= -1
+                # ball.ball_speed[1] *= -1
+
+            # ball hits the left side of playerleft
+            # for y in range(playerleft.rect.top, playerleft.rect.bottom):
+            #     if ball.rect.collidepoint(playerleft.rect.left, y):
+            #         ball.ball_speed[0] *= -1
+
+            #         print("collided")
+
+            if ball.rect.colliderect(playerright):
+                ball.ball_speed[0] *= -1
 
 
             all_sprites.update()
 
-
-
-
-
-
-            
-
-            # Ball collision with players    
-            ball_collided = pg.sprite.spritecollide(playerleft, ball_sprites, False)
-            ball_collided = pg.sprite.spritecollide(playerright, ball_sprites, False)
-
             screen.fill(WHITE)
 
+            
             all_sprites.draw(screen)
-            # active_sprite_list.draw(screen)
+            #
+            # tive_sprite_list.draw(screen)
 
             # Update the screen with anything new
             pg.display.flip()
