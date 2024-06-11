@@ -39,30 +39,34 @@ class PlayerL(pg.sprite.Sprite):
 
         self.rect = self.image.get_rect()
 
-        self.rect.x, self.rect.y = 50, HEIGHT // 2 - 50
+        self.rect.centerx, self.rect.centery = WIDTH * 1/8, HEIGHT // 2
 
         self.change_x = 0
         self.change_y = 0
 
     def go_left(self):
             """ Called when the user hits the left arrow. """
-            self.rect.x -= 4        
+            if self.change_x >= 0:
+                self.change_x = -1
+            self.rect.x += self.change_x   
     
     def go_right(self):
             """ Called when the user hits the right arrow. """
-            self.rect.x += 4
+            if self.change_x <= 0:
+                self.change_x = 1
+            self.rect.x += self.change_x
 
     def go_up(self):
             """ Called when the user hits the left arrow. """
-            self.rect.y -= 4
+            if self.change_y >= 0:
+                self.change_y = -1
+            self.rect.y += self.change_y
     
     def go_down(self):
             """ Called when the user hits the right arrow. """
-            self.rect.y += 4
-    
-    def stop(self):
-            """ Called when the user lets off the keyboard. """
-            self.change_x = 0
+            if self.change_y <= 0:
+                self.change_y = 1
+            self.rect.y += self.change_y   
 
     def update(self):
         """Keep the player in the screen"""
@@ -75,7 +79,28 @@ class PlayerL(pg.sprite.Sprite):
             self.rect.left = 0
         if self.rect.right > WIDTH / 2:
             self.rect.right = WIDTH / 2
-            
+
+        if self.change_x > 0:
+                # self.change_x = max(self.change_x + 2, 50)
+            if self.change_x < 7:
+                self.change_x += 0.1
+        if self.change_x < 0:
+                # self.change_x = min(self.change_x - 2, -50)
+            if self.change_x > -7:
+                self.change_x -= 0.1
+        
+        if self.change_y < 0:
+                # self.change_x = min(self.change_x - 2, -50)
+            if self.change_y > -7:
+                self.change_y -= 0.1
+        if self.change_y > 0:
+                # self.change_x = max(self.change_x + 2, 50)
+            if self.change_y < 7:
+                self.change_y += 0.1
+        
+        print(self.change_x, self.change_y)
+        
+        
 
 class PlayerR(pg.sprite.Sprite):
     def __init__(self):
@@ -98,7 +123,7 @@ class PlayerR(pg.sprite.Sprite):
 
         self.rect = self.image.get_rect()
 
-        self.rect.x, self.rect.y = WIDTH - 100, HEIGHT // 2 - 50
+        self.rect.centerx, self.rect.centery = WIDTH * 7/8, HEIGHT // 2
 
         self.change_x = 0
         self.change_y = 0
@@ -147,7 +172,7 @@ class GoalR(pg.sprite.Sprite):
         # Place goal in the middle of the side of the screen
 
         self.rect.right = WIDTH
-        self.rect.y = HEIGHT // 2 - 50
+        self.rect.centery = HEIGHT // 2
 
 class GoalL(pg.sprite.Sprite):
      def __init__(self):
@@ -161,7 +186,7 @@ class GoalL(pg.sprite.Sprite):
         # Place goal in the middle of the side of the screen
 
         self.rect.left = 0
-        self.rect.y = HEIGHT // 2 - 50
+        self.rect.centery = HEIGHT // 2
 
 
 
@@ -176,14 +201,24 @@ class Ball(pg.sprite.Sprite):
         self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
         pg.draw.circle(self.image, BLACK, (self.radius, self.radius), self.radius)
 
-        self.ball_speed = [5, 5]
+        self.ball_speed_x = 0
+        self.ball_speed_y = 0
+
+        # Always spawn ball on playerleft's side
 
         self.rect = self.image.get_rect()
 
+        self.rect.centerx = WIDTH // 4
+        self.rect.centery = HEIGHT // 2
+
+
     def update(self):
         # Move ball
-        self.rect.x += self.ball_speed[0]
-        self.rect.y += self.ball_speed[1]
+
+        # self.calc_grav()
+
+        self.rect.x += self.ball_speed_x
+        self.rect.y += self.ball_speed_y
 
         # Check for collision with walls
         if self.rect.left <= 0 or self.rect.right >= WIDTH:
@@ -191,8 +226,27 @@ class Ball(pg.sprite.Sprite):
         if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
             self.ball_speed[1] *= -1
 
-def reset_positions(playerleft, playerright, goalright, goalleft, ball):
-    playerleft.rect.right
+    # def calc_grav(self):
+    #     if self.ball_speed_x == 0:
+    #         self.ball_speed_x = 1
+    #     else:
+    #         self.ball_speed_x += .35
+
+    #     if self.ball_speed_y == 0:
+    #         self.ball_speed_y = 1
+    #     else:
+    #         self.ball_speed_y += .35
+
+      
+
+def reset_positions(playerleft: PlayerL, playerright: PlayerR, goalright: GoalR, goalleft: GoalL, ball: Ball):
+    playerleft.rect.x, playerleft.rect.y = 50, HEIGHT // 2 - 50
+    playerright.rect.x, playerright.rect.y = WIDTH - 100, HEIGHT // 2 - 50
+    goalright.rect.right, goalright.rect.y = WIDTH, HEIGHT // 2 - 50
+    goalleft.rect.left, goalleft.rect.y = 0, HEIGHT // 2 - 50
+
+
+
 
 # Game loop
 def start():
@@ -245,7 +299,7 @@ def start():
         # Increase the score by 10
             score += 1
             print(f"Score: {score}")
-            reset_positions()
+    
 
         for goalright in goalright_collided:
         # Increase the score by 10
