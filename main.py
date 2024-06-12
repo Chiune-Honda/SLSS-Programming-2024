@@ -12,25 +12,18 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 GRAY = (128, 128, 128)
 
-WIDTH = 1080
-HEIGHT = 720
+WIDTH = 1920
+HEIGHT = 1080
 SCREEN_SIZE = (WIDTH, HEIGHT)
 # Set up the screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Soccer Physics")
+pygame.display.set_caption("Cool Hockey's")
 
 
 class PlayerL(pg.sprite.Sprite):
     def __init__(self):
         # Super class constructor
         super().__init__()
-
-        # self.image = pg.Surface((25, 120))
-        # self.image.fill(BLACK)
-        # self.image = pg.image.load("./images/crayonshinchanbestversionleft.png")
-        # self.image = pg.transform.scale(
-        #     self.image, (self.image.get_width() // 2.75, self.image.get_height() // 2.75)
-        # )
 
         self.radius = 20  # Radius of the ball
         self.diameter = self.radius * 2
@@ -41,64 +34,54 @@ class PlayerL(pg.sprite.Sprite):
 
         self.rect.centerx, self.rect.centery = WIDTH * 1/8, HEIGHT // 2
 
+        self.max_speed = 7  # Maximum speed
+        self.acceleration = 0.1  # Acceleration rate
+        self.deceleration = 0.1  # Deceleration rate
+
         self.change_x = 0
         self.change_y = 0
 
     def go_left(self):
-            """ Called when the user hits the left arrow. """
-            if self.change_x >= 0:
-                self.change_x = -1
-            self.rect.x += self.change_x   
+        if self.change_x > -self.max_speed:
+            self.change_x -= self.acceleration
     
     def go_right(self):
-            """ Called when the user hits the right arrow. """
-            if self.change_x <= 0:
-                self.change_x = 1
-            self.rect.x += self.change_x
+        if self.change_x < self.max_speed:
+            self.change_x += self.acceleration
 
     def go_up(self):
-            """ Called when the user hits the left arrow. """
-            if self.change_y >= 0:
-                self.change_y = -1
-            self.rect.y += self.change_y
+        if self.change_y > -self.max_speed:
+            self.change_y -= self.acceleration
     
     def go_down(self):
-            """ Called when the user hits the right arrow. """
-            if self.change_y <= 0:
-                self.change_y = 1
-            self.rect.y += self.change_y   
+        if self.change_y < self.max_speed:
+            self.change_y += self.acceleration
+
+    def stop(self):
+        if self.change_x > 0:
+            self.change_x = max(self.change_x - self.deceleration, 0)
+        elif self.change_x < 0:
+            self.change_x = min(self.change_x + self.deceleration, 0)
+            
+        if self.change_y > 0:
+            self.change_y = max(self.change_y - self.deceleration, 0)
+        elif self.change_y < 0:
+            self.change_y = min(self.change_y + self.deceleration, 0)
 
     def update(self):
+        self.rect.x += self.change_x
+        self.rect.y += self.change_y
         """Keep the player in the screen"""
         if self.rect.bottom > HEIGHT:
             self.rect.bottom = HEIGHT
         if self.rect.top < 0:
             self.rect.top = 0
-        """Keep the player in the screen"""
         if self.rect.left < 0:
             self.rect.left = 0
         if self.rect.right > WIDTH / 2:
             self.rect.right = WIDTH / 2
 
-        if self.change_x > 0:
-                # self.change_x = max(self.change_x + 2, 50)
-            if self.change_x < 7:
-                self.change_x += 0.1
-        if self.change_x < 0:
-                # self.change_x = min(self.change_x - 2, -50)
-            if self.change_x > -7:
-                self.change_x -= 0.1
-        
-        if self.change_y < 0:
-                # self.change_x = min(self.change_x - 2, -50)
-            if self.change_y > -7:
-                self.change_y -= 0.1
-        if self.change_y > 0:
-                # self.change_x = max(self.change_x + 2, 50)
-            if self.change_y < 7:
-                self.change_y += 0.1
-        
-        print(self.change_x, self.change_y)
+       
         
         
 
@@ -221,11 +204,46 @@ class Ball(pg.sprite.Sprite):
         self.rect.y += self.ball_speed_y
 
         # Check for collision with walls
-        if self.rect.left <= 0 or self.rect.right >= WIDTH:
-            self.ball_speed[0] *= -1
-        if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
-            self.ball_speed[1] *= -1
+        if self.rect.left <= 0:
+            self.rect.left = 0
+            self.ball_speed_x *= -1
+        elif self.rect.right >= WIDTH:
+            self.rect.right = WIDTH
+            self.ball_speed_x *= -1
 
+        if self.rect.top <= 0:
+            self.rect.top = 0
+            self.ball_speed_y *= -1
+        elif self.rect.bottom >= HEIGHT:
+            self.rect.bottom = HEIGHT
+            self.ball_speed_y *= -1
+
+    def hitright(self):
+    # Called when the ball is hit by a player
+    # Change the ball's speed based on the player's direction and speed
+    
+            self.ball_speed_x = 3
+
+            self.ball_speed_y = 3
+
+    def hitleft(self):
+
+        self.ball_speed_x = -3
+        self.ball_speed_y = -3
+
+        # if player.rect.centerx < self.rect.centerx:
+        #     self.rect.left = player.rect.right
+        #     self.ball_speed_x = player.change_x  # Move left
+        # else:
+        #     self.rect.right = player.rect.left
+        #     self.ball_speed_x = player.change_x  # Move right
+        
+        # if player.rect.centery > self.rect.centery:
+        #     self.rect.bottom = player.rect.top
+        #     self.ball_speed_y = player.change_y
+        # else:
+        #     self.rect.top = player.rect.bottom
+        #     self.ball_speed_y = player.change_y
     # def calc_grav(self):
     #     if self.ball_speed_x == 0:
     #         self.ball_speed_x = 1
@@ -294,7 +312,6 @@ def start():
         goalleft_collided = pg.sprite.spritecollide(ball, goalleft_sprites, True)
         goalright_collided = pg.sprite.spritecollide(ball, goalright_sprites, True)
 
-
         for goalleft in goalleft_collided:
         # Increase the score by 10
             score += 1
@@ -308,7 +325,7 @@ def start():
 
         
                         
-        # Key and controls
+        #Key and controls
         keys_pressed = pg.key.get_pressed()
 
         if keys_pressed[pg.K_w]:
@@ -320,7 +337,6 @@ def start():
         if keys_pressed[pg.K_d]:
             playerleft.go_right()
 
-
         if keys_pressed[pg.K_UP]:
             playerright.go_up()
         if keys_pressed[pg.K_DOWN]:
@@ -330,12 +346,10 @@ def start():
         if keys_pressed[pg.K_RIGHT]:
             playerright.go_right()
 
+        if pygame.sprite.collide_circle(playerleft, ball):
+            ball.hitright()
+            ball.hitleft()
 
-        if ball.rect.colliderect(playerleft):
-            ball.ball_speed[0] *= -1
-
-        if ball.rect.colliderect(playerright):
-            ball.ball_speed[0] *= -1
 
         screen.fill(WHITE)
 
