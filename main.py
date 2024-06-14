@@ -193,6 +193,8 @@ class Ball(pg.sprite.Sprite):
 
         self.rect.centerx = WIDTH // 4
         self.rect.centery = HEIGHT // 2
+        self.deceleration = 0.01  # Deceleration rate
+
 
 
     def update(self):
@@ -200,9 +202,17 @@ class Ball(pg.sprite.Sprite):
 
         # self.calc_grav()
 
+        # if self.ball_speed_x:
+        if self.ball_speed_x < 0:  # right to left
+            self.ball_speed_x = max(self.ball_speed_x + self.deceleration, 1)
+        elif self.ball_speed_x > 0:  # right to left
+            self.ball_speed_x = max(self.ball_speed_x - self.deceleration, 0)
+
         self.rect.x += self.ball_speed_x
         self.rect.y += self.ball_speed_y
 
+
+            
         # Check for collision with walls
         if self.rect.left <= 0:
             self.rect.left = 0
@@ -218,15 +228,34 @@ class Ball(pg.sprite.Sprite):
             self.rect.bottom = HEIGHT
             self.ball_speed_y *= -1
 
-    def hitright(self):
+
+
+    def hitright(self, player):
     # Called when the ball is hit by a player
     # Change the ball's speed based on the player's direction and speed
     
-            self.ball_speed_x = 3
-
+            # self.ball_speed_x = 3
+            # self.ball_speed_y = 3
+            if self.ball_speed_x == 0:
+                self.ball_speed_x = player.change_x
+            else:
+                self.ball_speed_x += player.change_x
             self.ball_speed_y = 3
 
-    def hitleft(self):
+        
+
+
+
+            # elif self.ball_speed_x:
+            #     self.ball_speed_x = min(self.ball_speed_x + self.deceleration, 0)
+                
+            if self.ball_speed_y:
+                self.ball_speed_y = max(self.ball_speed_y + self.deceleration, 0)
+            # elif self.ball_speed_y:
+            #     self.ball_speed_y = min(self.ball_speed_y + self.deceleration, 0)
+
+
+    def hitleft(self, player):
 
         self.ball_speed_x = -3
         self.ball_speed_y = -3
@@ -323,8 +352,6 @@ def start():
             score += 1
             print(f"Score: {score}")
 
-        
-                        
         #Key and controls
         keys_pressed = pg.key.get_pressed()
 
@@ -345,11 +372,15 @@ def start():
             playerright.go_left()
         if keys_pressed[pg.K_RIGHT]:
             playerright.go_right()
-
+        
         if pygame.sprite.collide_circle(playerleft, ball):
-            ball.hitright()
-            ball.hitleft()
 
+            if playerleft.rect.right>ball.rect.left and playerleft.rect.centerx <ball.rect.left:
+                ball.hitright(playerleft)
+
+            if playerleft.rect.left<ball.rect.right and playerleft.rect.centerx > ball.rect.right:
+           
+                ball.hitleft(playerleft)
 
         screen.fill(WHITE)
 
