@@ -17,7 +17,7 @@ HEIGHT = 1080
 SCREEN_SIZE = (WIDTH, HEIGHT)
 # Set up the screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Cool Hockey's")
+pygame.display.set_caption("O₂ Hockey")
 
 
 class PlayerL(pg.sprite.Sprite):
@@ -25,7 +25,7 @@ class PlayerL(pg.sprite.Sprite):
         # Super class constructor
         super().__init__()
 
-        self.radius = 20  # Radius of the ball
+        self.radius = 30  # Radius of the ball
         self.diameter = self.radius * 2
         self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
         pg.draw.circle(self.image, BLUE, (self.radius, self.radius), self.radius)
@@ -35,8 +35,8 @@ class PlayerL(pg.sprite.Sprite):
         self.rect.centerx, self.rect.centery = WIDTH * 1/8, HEIGHT // 2
 
         self.max_speed = 7  # Maximum speed
-        self.acceleration = 0.1  # Acceleration rate
-        self.deceleration = 0.1  # Deceleration rate
+        self.acceleration = 0.2  # Acceleration rate
+        self.deceleration = 1  # Deceleration rate
 
         self.change_x = 0
         self.change_y = 0
@@ -82,24 +82,13 @@ class PlayerL(pg.sprite.Sprite):
             self.rect.right = WIDTH / 2
 
        
-        
-        
-
 class PlayerR(pg.sprite.Sprite):
     def __init__(self):
         # Super class constructor
         super().__init__()
 
-        # # Draw a circle inside of it
-        # self.image = pg.Surface((25, 120))
-        # self.image.fill(BLACK)
 
-        # self.image = pg.image.load("./images/crayon-shin-chan-right.png")
-        # self.image = pg.transform.scale(
-        #     self.image, (self.image.get_width() // 1.75, self.image.get_height() // 1.75)
-        # )
-
-        self.radius = 20  # Radius of the ball
+        self.radius = 30  # Radius of the ball
         self.diameter = self.radius * 2
         self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
         pg.draw.circle(self.image, RED, (self.radius, self.radius), self.radius)
@@ -108,30 +97,44 @@ class PlayerR(pg.sprite.Sprite):
 
         self.rect.centerx, self.rect.centery = WIDTH * 7/8, HEIGHT // 2
 
+        self.max_speed = 7  # Maximum speed
+        self.acceleration = 0.2  # Acceleration rate
+        self.deceleration = 1  # Deceleration rate
+
         self.change_x = 0
         self.change_y = 0
 
     def go_left(self):
-            """ Called when the user hits the left arrow. """
-            self.rect.x -= 4
+        if self.change_x > -self.max_speed:
+            self.change_x -= self.acceleration
     
     def go_right(self):
-            """ Called when the user hits the right arrow. """
-            self.rect.x += 4
+        if self.change_x < self.max_speed:
+            self.change_x += self.acceleration
 
     def go_up(self):
-            """ Called when the user hits the left arrow. """
-            self.rect.y -= 4
+        if self.change_y > -self.max_speed:
+            self.change_y -= self.acceleration
     
     def go_down(self):
-            """ Called when the user hits the right arrow. """
-            self.rect.y += 4
+        if self.change_y < self.max_speed:
+            self.change_y += self.acceleration
 
     def stop(self):
-            """ Called when the user lets off the keyboard. """
-            self.change_x = 0
+        if self.change_x > 0:
+            self.change_x = max(self.change_x - self.deceleration, 0)
+        elif self.change_x < 0:
+            self.change_x = min(self.change_x + self.deceleration, 0)
+            
+        if self.change_y > 0:
+            self.change_y = max(self.change_y - self.deceleration, 0)
+        elif self.change_y < 0:
+            self.change_y = min(self.change_y + self.deceleration, 0)
 
     def update(self):
+        self.rect.x += self.change_x
+        self.rect.y += self.change_y
+     
         """Keep the player in the screen"""
         if self.rect.bottom > HEIGHT:
             self.rect.bottom = HEIGHT
@@ -172,14 +175,12 @@ class GoalL(pg.sprite.Sprite):
         self.rect.centery = HEIGHT // 2
 
 
-
-
 class Ball(pg.sprite.Sprite):
     def __init__(self):
         # Super class constructor
         super().__init__()
 
-        self.radius = 15  # Radius of the ball
+        self.radius = 17  # Radius of the ball
         self.diameter = self.radius * 2
         self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
         pg.draw.circle(self.image, BLACK, (self.radius, self.radius), self.radius)
@@ -196,7 +197,6 @@ class Ball(pg.sprite.Sprite):
         self.deceleration = 0.01  # Deceleration rate
 
 
-
     def update(self):
         # Move ball
 
@@ -204,15 +204,13 @@ class Ball(pg.sprite.Sprite):
 
         # if self.ball_speed_x:
         if self.ball_speed_x < 0:  # right to left
-            self.ball_speed_x = max(self.ball_speed_x + self.deceleration, 1)
-        elif self.ball_speed_x > 0:  # right to left
+            self.ball_speed_x = min(self.ball_speed_x + self.deceleration, 0)
+        if self.ball_speed_x > 0:  # right to left
             self.ball_speed_x = max(self.ball_speed_x - self.deceleration, 0)
 
         self.rect.x += self.ball_speed_x
         self.rect.y += self.ball_speed_y
-
-
-            
+ 
         # Check for collision with walls
         if self.rect.left <= 0:
             self.rect.left = 0
@@ -228,71 +226,54 @@ class Ball(pg.sprite.Sprite):
             self.rect.bottom = HEIGHT
             self.ball_speed_y *= -1
 
-
-
     def hitright(self, player):
     # Called when the ball is hit by a player
     # Change the ball's speed based on the player's direction and speed
-    
-            # self.ball_speed_x = 3
-            # self.ball_speed_y = 3
-            if self.ball_speed_x == 0:
-                self.ball_speed_x = player.change_x
-            else:
-                self.ball_speed_x += player.change_x
-            self.ball_speed_y = 3
+        self.rect.left = player.rect.right
+        # self.ball_speed_x = 3
+        # self.ball_speed_y = 3
+        if self.ball_speed_x == 0:
+            self.ball_speed_x = player.change_x + 3
+        else:
+            self.ball_speed_x = player.change_x + 3
+        self.ball_speed_y = player.change_y
 
+    def hittop(self, player):
+
+        self.rect.bottom = player.rect.top
+
+        if self.ball_speed_y == 0:
+            self.ball_speed_y = player.change_y  - 3
+        else:
+            self.ball_speed_y = player.change_y - 3
+        self.ball_speed_x = player.change_x
+
+    def hitbottom(self, player):
         
+        self.rect.top = player.rect.bottom
 
+        if self.ball_speed_y == 0:
+            self.ball_speed_y = player.change_y + 3
+        else: 
+            self.ball_speed_y = player.change_y + 3
+        self.ball_speed_x = player.change_x
 
-
-            # elif self.ball_speed_x:
-            #     self.ball_speed_x = min(self.ball_speed_x + self.deceleration, 0)
-                
-            if self.ball_speed_y:
-                self.ball_speed_y = max(self.ball_speed_y + self.deceleration, 0)
-            # elif self.ball_speed_y:
-            #     self.ball_speed_y = min(self.ball_speed_y + self.deceleration, 0)
-
-
+            
     def hitleft(self, player):
+        self.rect.right = player.rect.left
 
-        self.ball_speed_x = -3
-        self.ball_speed_y = -3
-
-        # if player.rect.centerx < self.rect.centerx:
-        #     self.rect.left = player.rect.right
-        #     self.ball_speed_x = player.change_x  # Move left
-        # else:
-        #     self.rect.right = player.rect.left
-        #     self.ball_speed_x = player.change_x  # Move right
-        
-        # if player.rect.centery > self.rect.centery:
-        #     self.rect.bottom = player.rect.top
-        #     self.ball_speed_y = player.change_y
-        # else:
-        #     self.rect.top = player.rect.bottom
-        #     self.ball_speed_y = player.change_y
-    # def calc_grav(self):
-    #     if self.ball_speed_x == 0:
-    #         self.ball_speed_x = 1
-    #     else:
-    #         self.ball_speed_x += .35
-
-    #     if self.ball_speed_y == 0:
-    #         self.ball_speed_y = 1
-    #     else:
-    #         self.ball_speed_y += .35
+        if self.ball_speed_x == 0:
+            self.ball_speed_x = player.change_x  - 3
+        else:
+            self.ball_speed_x = player.change_x - 3
+        self.ball_speed_y = player.change_y
 
       
-
 def reset_positions(playerleft: PlayerL, playerright: PlayerR, goalright: GoalR, goalleft: GoalL, ball: Ball):
     playerleft.rect.x, playerleft.rect.y = 50, HEIGHT // 2 - 50
     playerright.rect.x, playerright.rect.y = WIDTH - 100, HEIGHT // 2 - 50
     goalright.rect.right, goalright.rect.y = WIDTH, HEIGHT // 2 - 50
     goalleft.rect.left, goalleft.rect.y = 0, HEIGHT // 2 - 50
-
-
 
 
 # Game loop
@@ -374,13 +355,24 @@ def start():
             playerright.go_right()
         
         if pygame.sprite.collide_circle(playerleft, ball):
-
             if playerleft.rect.right>ball.rect.left and playerleft.rect.centerx <ball.rect.left:
                 ball.hitright(playerleft)
-
             if playerleft.rect.left<ball.rect.right and playerleft.rect.centerx > ball.rect.right:
-           
                 ball.hitleft(playerleft)
+            if playerleft.rect.bottom > ball.rect.top and playerleft.rect.centery < ball.rect.top:
+                ball.hitbottom(playerleft)
+            if playerleft.rect.top < ball.rect.bottom and playerleft.rect.centery > ball.rect.bottom:
+                ball.hittop(playerleft)
+            
+        if pygame.sprite.collide_circle(playerright, ball):
+            if playerright.rect.right>ball.rect.left and playerright.rect.centerx <ball.rect.left:
+                ball.hitright(playerright)
+            if playerright.rect.left<ball.rect.right and playerright.rect.centerx > ball.rect.right:
+                ball.hitleft(playerright)
+            if playerright.rect.bottom > ball.rect.top and playerright.rect.centery < ball.rect.top:
+                ball.hitbottom(playerright)
+            if playerright.rect.top < ball.rect.bottom and playerright.rect.centery > ball.rect.bottom:
+                ball.hittop(playerright)
 
         screen.fill(WHITE)
 
