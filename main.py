@@ -41,6 +41,8 @@ class PlayerL(pg.sprite.Sprite):
         self.change_x = 0
         self.change_y = 0
 
+        self.score = 0
+
     def go_left(self):
         if self.change_x > -self.max_speed:
             self.change_x -= self.acceleration
@@ -104,6 +106,8 @@ class PlayerR(pg.sprite.Sprite):
         self.change_x = 0
         self.change_y = 0
 
+        self.score = 0
+
     def go_left(self):
         if self.change_x > -self.max_speed:
             self.change_x -= self.acceleration
@@ -160,6 +164,7 @@ class GoalR(pg.sprite.Sprite):
         self.rect.right = WIDTH
         self.rect.centery = HEIGHT // 2
 
+
 class GoalL(pg.sprite.Sprite):
      def __init__(self):
         super().__init__()
@@ -173,6 +178,26 @@ class GoalL(pg.sprite.Sprite):
 
         self.rect.left = 0
         self.rect.centery = HEIGHT // 2
+
+class CircleinMiddle(pg.sprite.Sprite):
+    def __init__(self):
+        # Super class constructor
+        super().__init__()
+
+        self.radius = 25  # Radius of the ball
+        self.diameter = self.radius * 2
+        BLACK_TRANSPARENT = (0, 0, 0, 100)  # Black with alpha = 150 (semi-transparent)
+
+        self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
+
+        pg.draw.circle(self.image, BLACK_TRANSPARENT, (self.radius, self.radius), self.radius)
+        # pg.draw.circle(self.image, BLACK, (self.radius, self.radius), self.radius)
+
+        self.rect = self.image.get_rect()
+
+        self.rect.centerx = WIDTH // 2
+        self.rect.centery = HEIGHT // 2
+
 
 
 class Ball(pg.sprite.Sprite):
@@ -195,7 +220,6 @@ class Ball(pg.sprite.Sprite):
         self.rect.centerx = WIDTH // 4
         self.rect.centery = HEIGHT // 2
         self.deceleration = 0.01  # Deceleration rate
-
 
     def update(self):
         # Move ball
@@ -270,11 +294,13 @@ class Ball(pg.sprite.Sprite):
 
       
 def reset_positions(playerleft: PlayerL, playerright: PlayerR, goalright: GoalR, goalleft: GoalL, ball: Ball):
-    playerleft.rect.x, playerleft.rect.y = 50, HEIGHT // 2 - 50
-    playerright.rect.x, playerright.rect.y = WIDTH - 100, HEIGHT // 2 - 50
-    goalright.rect.right, goalright.rect.y = WIDTH, HEIGHT // 2 - 50
-    goalleft.rect.left, goalleft.rect.y = 0, HEIGHT // 2 - 50
-
+    playerleft.rect.centerx, playerleft.rect.centery = WIDTH * 1/8, HEIGHT // 2
+    playerright.rect.centerx, playerright.rect.centery = WIDTH * 7/8, HEIGHT // 2
+    goalright.rect.right, goalright.rect.centery = WIDTH, HEIGHT // 2
+    goalleft.rect.left, goalleft.rect.centery = 0, HEIGHT // 2
+    
+    ball.rect.center = WIDTH // 2, HEIGHT // 2
+    ball.ball_speed_x, ball.ball_speed_y = 0, 0
 
 # Game loop
 def start():
@@ -285,14 +311,14 @@ def start():
     done = False
     clock = pg.time.Clock()
 
-    font = pg.font.SysFont("Futura", 24)
-    score = 0
+    font = pg.font.SysFont("Futura", 1000)
 
     playerleft = PlayerL()
     playerright = PlayerR()
     goalright = GoalR()
     goalleft = GoalL()
     ball = Ball()
+    circleinmiddle = CircleinMiddle()
 
     all_sprites = pg.sprite.Group()
     ball_sprites = pg.sprite.Group()
@@ -304,13 +330,13 @@ def start():
     all_sprites.add(goalright)
     all_sprites.add(goalleft)
     all_sprites.add(ball)
-
+    all_sprites.add(circleinmiddle)
+    
     goalleft_sprites.add(goalleft)
     goalright_sprites.add(goalright)
 
     ball_sprites.add(ball)
 
-    
     while not done:
         # --- Event Listener
         for event in pg.event.get():
@@ -319,21 +345,21 @@ def start():
 
         all_sprites.update()
 
-        goalleft_collided = pg.sprite.spritecollide(ball, goalleft_sprites, True)
-        goalright_collided = pg.sprite.spritecollide(ball, goalright_sprites, True)
+        goalleft_collided = pg.sprite.spritecollide(ball, goalleft_sprites, False)
+        goalright_collided = pg.sprite.spritecollide(ball, goalright_sprites, False)
 
-        for goalleft in goalleft_collided:
-        # Increase the score by 10
-            score += 1
-            print(f"Score: {score}")
-    
+        if goalleft_collided:
+            playerright.score += 1
+            reset_positions(playerleft, playerright, goalright, goalleft, ball)
 
-        for goalright in goalright_collided:
-        # Increase the score by 10
-            score += 1
-            print(f"Score: {score}")
+        if goalright_collided:
+            playerleft.score += 1
+            reset_positions(playerleft, playerright, goalright, goalleft, ball)
 
-        #Key and controls
+
+      
+
+        #Key and controol
         keys_pressed = pg.key.get_pressed()
 
         if keys_pressed[pg.K_w]:
@@ -376,11 +402,26 @@ def start():
 
         screen.fill(WHITE)
 
-        score_image = font.render(f"Score: {score}", True, BLACK)
+        scorel = font.render(f"{playerright.score}", True, (0, 0, 255))
+        scorer = font.render(f"{playerleft.score}", True, (255, 0, 0))
+
+        scorel.set_alpha(127)
+        scorer.set_alpha(127)
+        
         all_sprites.draw(screen)
 
-        # "Blit" the surface on the screen
-        screen.blit(score_image, (5, 5))
+
+        scorel_rect = scorel.get_rect()
+        scorer_rect = scorer.get_rect()
+
+        scorel_pos = (WIDTH * 0.22 - scorel_rect.width // 2, HEIGHT // 2 - scorel_rect.height // 2)
+        scorer_pos = (WIDTH * 0.78 - scorer_rect.width // 2, HEIGHT // 2 - scorer_rect.height // 2)
+
+        screen.blit(scorel, scorel_pos)
+        screen.blit(scorer, scorer_pos)
+        # # "Blit" the surface on the screen
+        # screen.blit(scorel, (200, 540))
+        # screen.blit(scorer, (1720, 540))
 
         all_sprites.draw(screen)
            
