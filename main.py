@@ -348,6 +348,17 @@ def reset_ballpositionleftscore(ball: Ball):
     ball.rect.centery = HEIGHT // 2
     ball.ball_speed_x, ball.ball_speed_y = 0, 0
 
+def wait():
+    waiting = True
+    while waiting:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+                exit()
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_SPACE:
+                    waiting = False
+
 # Game loop
 def start():
     pg.init()
@@ -356,6 +367,23 @@ def start():
     screen = pg.display.set_mode(SCREEN_SIZE)
     done = False
     clock = pg.time.Clock()
+
+    font = pg.font.SysFont("Futura", 30)
+    font2 = pg.font.SysFont("Futura", 60)
+    font3 = pg.font.SysFont("Futura", 22)
+    # Game Title
+    pg.display.set_caption("1v1 Hoops")
+    title = font2.render("WELCOME TO 1v1 Hoops", True, WHITE)
+    p1controls = font.render("PLAYER 1 CONTROLS - MOVE LEFT: 'A', MOVE RIGHT: 'D', JUMP/BLOCK: 'W", True, WHITE)
+    p2controls = font.render("PLAYER 1 CONTROLS - MOVE LEFT: 'left' key, MOVE RIGHT: 'right' key, JUMP/BLOCK: 'up' key", True, WHITE)
+    startcommand = font3.render("Press SPACEBAR to begin!", True, WHITE)
+    screen.blit(title, (100, 100))
+    screen.blit(p1controls, (100, 300))
+    screen.blit(p2controls, (100, 400))
+    screen.blit(startcommand, (100, 475))
+    pg.display.flip()
+    # Wait for key press to start the game
+    wait()
 
     font = pg.font.SysFont("Futura", 1000)
 
@@ -382,104 +410,110 @@ def start():
     all_sprites.add(goalright)
     all_sprites.add(goalleft)
     all_sprites.add(ball)
-   
-    
+
     goalleft_sprites.add(goalleft)
     goalright_sprites.add(goalright)
 
     ball_sprites.add(ball)
 
+    all_sprites.update()
+
+    # Create screen and clock
+    screen = pygame.display.set_mode(SCREEN_SIZE)
+    clock = pygame.time.Clock()
+
+    # Display the start screen
+
+    all_sprites.update()
+
     while not done:
-        # --- Event Listener
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 done = True
 
-        all_sprites.update()
+    #Key and controol
+    keys_pressed = pg.key.get_pressed()
 
-        goalleft_collided = pg.sprite.spritecollide(ball, goalleft_sprites, False)
-        goalright_collided = pg.sprite.spritecollide(ball, goalright_sprites, False)
+    if keys_pressed[pg.K_w]:
+        playerleft.go_up()
+    if keys_pressed[pg.K_s]:
+        playerleft.go_down()
+    if keys_pressed[pg.K_a]:
+        playerleft.go_left()
+    if keys_pressed[pg.K_d]:
+        playerleft.go_right()
 
-        if goalleft_collided:
-            playerright.score += 1
-            reset_mainpositions(playerleft, playerright, goalright, goalleft)
-            reset_ballpositionrightscore(ball)
+    if keys_pressed[pg.K_UP]:
+        playerright.go_up()
+    if keys_pressed[pg.K_DOWN]:
+        playerright.go_down()
+    if keys_pressed[pg.K_LEFT]:
+        playerright.go_left()
+    if keys_pressed[pg.K_RIGHT]:
+        playerright.go_right()
+    
 
-        if goalright_collided:
-            playerleft.score += 1
-            reset_mainpositions(playerleft, playerright, goalright, goalleft)
-            reset_ballpositionleftscore(ball)
+    goalleft_collided = pg.sprite.spritecollide(ball, goalleft_sprites, False)
+    goalright_collided = pg.sprite.spritecollide(ball, goalright_sprites, False)
 
-        #Key and controol
-        keys_pressed = pg.key.get_pressed()
+    if goalleft_collided:
+        playerright.score += 1
+        reset_mainpositions(playerleft, playerright, goalright, goalleft)
+        reset_ballpositionrightscore(ball)
 
-        if keys_pressed[pg.K_w]:
-            playerleft.go_up()
-        if keys_pressed[pg.K_s]:
-            playerleft.go_down()
-        if keys_pressed[pg.K_a]:
-            playerleft.go_left()
-        if keys_pressed[pg.K_d]:
-            playerleft.go_right()
+    if goalright_collided:
+        playerleft.score += 1
+        reset_mainpositions(playerleft, playerright, goalright, goalleft)
+        reset_ballpositionleftscore(ball)
 
-        if keys_pressed[pg.K_UP]:
-            playerright.go_up()
-        if keys_pressed[pg.K_DOWN]:
-            playerright.go_down()
-        if keys_pressed[pg.K_LEFT]:
-            playerright.go_left()
-        if keys_pressed[pg.K_RIGHT]:
-            playerright.go_right()
+    if pygame.sprite.collide_circle(playerleft, ball):
+        if playerleft.rect.right>ball.rect.left and playerleft.rect.centerx <ball.rect.left:
+            ball.hitright(playerleft)
+        if playerleft.rect.left<ball.rect.right and playerleft.rect.centerx > ball.rect.right:
+            ball.hitleft(playerleft)
+        if playerleft.rect.bottom > ball.rect.top and playerleft.rect.centery < ball.rect.top:
+            ball.hitbottom(playerleft)
+        if playerleft.rect.top < ball.rect.bottom and playerleft.rect.centery > ball.rect.bottom:
+            ball.hittop(playerleft)
         
-        if pygame.sprite.collide_circle(playerleft, ball):
-            if playerleft.rect.right>ball.rect.left and playerleft.rect.centerx <ball.rect.left:
-                ball.hitright(playerleft)
-            if playerleft.rect.left<ball.rect.right and playerleft.rect.centerx > ball.rect.right:
-                ball.hitleft(playerleft)
-            if playerleft.rect.bottom > ball.rect.top and playerleft.rect.centery < ball.rect.top:
-                ball.hitbottom(playerleft)
-            if playerleft.rect.top < ball.rect.bottom and playerleft.rect.centery > ball.rect.bottom:
-                ball.hittop(playerleft)
-            
-        if pygame.sprite.collide_circle(playerright, ball):
-            if playerright.rect.right>ball.rect.left and playerright.rect.centerx <ball.rect.left:
-                ball.hitright(playerright)
-            if playerright.rect.left<ball.rect.right and playerright.rect.centerx > ball.rect.right:
-                ball.hitleft(playerright)
-            if playerright.rect.bottom > ball.rect.top and playerright.rect.centery < ball.rect.top:
-                ball.hitbottom(playerright)
-            if playerright.rect.top < ball.rect.bottom and playerright.rect.centery > ball.rect.bottom:
-                ball.hittop(playerright)
+    if pygame.sprite.collide_circle(playerright, ball):
+        if playerright.rect.right>ball.rect.left and playerright.rect.centerx <ball.rect.left:
+            ball.hitright(playerright)
+        if playerright.rect.left<ball.rect.right and playerright.rect.centerx > ball.rect.right:
+            ball.hitleft(playerright)
+        if playerright.rect.bottom > ball.rect.top and playerright.rect.centery < ball.rect.top:
+            ball.hitbottom(playerright)
+        if playerright.rect.top < ball.rect.bottom and playerright.rect.centery > ball.rect.bottom:
+            ball.hittop(playerright)
 
-        screen.fill(WHITE)
+    screen.fill(WHITE)
 
-        scorel = font.render(f"{playerright.score}", True, (0, 0, 255))
-        scorer = font.render(f"{playerleft.score}", True, (255, 0, 0))
+    scorel = font.render(f"{playerright.score}", True, (0, 0, 255))
+    scorer = font.render(f"{playerleft.score}", True, (255, 0, 0))
 
-        scorel.set_alpha(127)
-        scorer.set_alpha(127)
-        
-        all_sprites.draw(screen)
+    scorel.set_alpha(127)
+    scorer.set_alpha(127)
+    
+    all_sprites.draw(screen)
 
+    scorel_rect = scorel.get_rect()
+    scorer_rect = scorer.get_rect()
 
-        scorel_rect = scorel.get_rect()
-        scorer_rect = scorer.get_rect()
+    scorel_pos = (WIDTH * 0.22 - scorel_rect.width // 2, HEIGHT // 2 - scorel_rect.height // 2)
+    scorer_pos = (WIDTH * 0.78 - scorer_rect.width // 2, HEIGHT // 2 - scorer_rect.height // 2)
 
-        scorel_pos = (WIDTH * 0.22 - scorel_rect.width // 2, HEIGHT // 2 - scorel_rect.height // 2)
-        scorer_pos = (WIDTH * 0.78 - scorer_rect.width // 2, HEIGHT // 2 - scorer_rect.height // 2)
+    screen.blit(scorel, scorel_pos)
+    screen.blit(scorer, scorer_pos)
+    # # "Blit" the surface on the screen
+    # screen.blit(scorel, (200, 540))
+    # screen.blit(scorer, (1720, 540))
 
-        screen.blit(scorel, scorel_pos)
-        screen.blit(scorer, scorer_pos)
-        # # "Blit" the surface on the screen
-        # screen.blit(scorel, (200, 540))
-        # screen.blit(scorer, (1720, 540))
+    all_sprites.draw(screen)
 
-        all_sprites.draw(screen)
-           
-        pg.display.flip()
+    pg.display.flip()
 
-        # --- Tick the Clock
-        clock.tick(75)  # 75 fps
+    # --- Tick the Clock
+    clock.tick(75)  # 75 fps
 
 def main():
     start()
