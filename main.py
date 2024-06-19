@@ -19,24 +19,22 @@ SCREEN_SIZE = (WIDTH, HEIGHT)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("O₂ Hockey")
 
-
 class PlayerL(pg.sprite.Sprite):
     def __init__(self):
         # Super class constructor
         super().__init__()
 
-        self.radius = 30  # Radius of the ball
+        self.radius = 40  # Radius of the ball
         self.diameter = self.radius * 2
         self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
         pg.draw.circle(self.image, BLUE, (self.radius, self.radius), self.radius)
-
         self.rect = self.image.get_rect()
 
         self.rect.centerx, self.rect.centery = WIDTH * 1/8, HEIGHT // 2
 
-        self.max_speed = 7  # Maximum speed
-        self.acceleration = 0.2  # Acceleration rate
-        self.deceleration = 1  # Deceleration rate
+        self.max_speed = 6  # Maximum speed
+        self.acceleration = 0.5  # Acceleration rate
+        self.deceleration = 0.2  # Deceleration rate
 
         self.change_x = 0
         self.change_y = 0
@@ -89,8 +87,7 @@ class PlayerR(pg.sprite.Sprite):
         # Super class constructor
         super().__init__()
 
-
-        self.radius = 30  # Radius of the ball
+        self.radius = 40  # Radius of the ball
         self.diameter = self.radius * 2
         self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
         pg.draw.circle(self.image, RED, (self.radius, self.radius), self.radius)
@@ -99,9 +96,9 @@ class PlayerR(pg.sprite.Sprite):
 
         self.rect.centerx, self.rect.centery = WIDTH * 7/8, HEIGHT // 2
 
-        self.max_speed = 7  # Maximum speed
-        self.acceleration = 0.2  # Acceleration rate
-        self.deceleration = 1  # Deceleration rate
+        self.max_speed = 6  # Maximum speed
+        self.acceleration = 0.5  # Acceleration rate
+        self.deceleration = 0.2  # Deceleration rate
 
         self.change_x = 0
         self.change_y = 0
@@ -184,19 +181,58 @@ class CircleinMiddle(pg.sprite.Sprite):
         # Super class constructor
         super().__init__()
 
-        self.radius = 25  # Radius of the ball
+        self.radius = 50  # Radius of the ball
         self.diameter = self.radius * 2
-        BLACK_TRANSPARENT = (0, 0, 0, 100)  # Black with alpha = 150 (semi-transparent)
+        # BLACK_TRANSPARENT = (0, 0, 0, 100)  # Black with alpha = 150 (semi-transparent)
 
         self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
 
-        pg.draw.circle(self.image, BLACK_TRANSPARENT, (self.radius, self.radius), self.radius)
+        pg.draw.circle(self.image, BLACK, (self.radius, self.radius), self.radius)
         # pg.draw.circle(self.image, BLACK, (self.radius, self.radius), self.radius)
 
         self.rect = self.image.get_rect()
 
         self.rect.centerx = WIDTH // 2
         self.rect.centery = HEIGHT // 2
+
+class CircleinMiddleInside(pg.sprite.Sprite):
+    def __init__(self):
+        # Super class constructor
+        super().__init__()
+
+        self.radius = 40  # Radius of the ball
+        self.diameter = self.radius * 2
+          # Black with alpha = 150 (semi-transparent)
+
+        self.image = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
+
+        pg.draw.circle(self.image, WHITE, (self.radius, self.radius), self.radius)
+        # pg.draw.circle(self.image, BLACK, (self.radius, self.radius), self.radius)
+
+        self.rect = self.image.get_rect()
+
+        self.rect.centerx = WIDTH // 2
+        self.rect.centery = HEIGHT // 2
+
+
+class MiddleLine(pg.sprite.Sprite):
+    def __init__(self):
+        # Super class constructor
+        super().__init__()
+
+        # BLACK_TRANSPARENT = (0, 0, 0, 100)
+
+        self.image = pg.Surface((15, 1080), pg.SRCALPHA)
+        self.image.fill(BLACK)
+
+        
+        self.rect = self.image.get_rect()
+
+        # Place goal in the middle of the side of the screen
+
+        self.rect.centerx = WIDTH // 2
+        self.rect.centery = HEIGHT // 2
+
 
 
 
@@ -291,15 +327,25 @@ class Ball(pg.sprite.Sprite):
         else:
             self.ball_speed_x = player.change_x - 3
         self.ball_speed_y = player.change_y
-
-      
-def reset_positions(playerleft: PlayerL, playerright: PlayerR, goalright: GoalR, goalleft: GoalL, ball: Ball):
+ 
+def reset_mainpositions(playerleft: PlayerL, playerright: PlayerR, goalright: GoalR, goalleft: GoalL):
     playerleft.rect.centerx, playerleft.rect.centery = WIDTH * 1/8, HEIGHT // 2
+    playerleft.change_x, playerleft.change_y = 0, 0
+
     playerright.rect.centerx, playerright.rect.centery = WIDTH * 7/8, HEIGHT // 2
+    playerright.change_x, playerright.change_y = 0, 0
+    
     goalright.rect.right, goalright.rect.centery = WIDTH, HEIGHT // 2
     goalleft.rect.left, goalleft.rect.centery = 0, HEIGHT // 2
     
-    ball.rect.center = WIDTH // 2, HEIGHT // 2
+def reset_ballpositionrightscore(ball: Ball):
+    ball.rect.centerx = WIDTH // 4
+    ball.rect.centery = HEIGHT // 2
+    ball.ball_speed_x, ball.ball_speed_y = 0, 0
+
+def reset_ballpositionleftscore(ball: Ball):
+    ball.rect.centerx = WIDTH * 0.75
+    ball.rect.centery = HEIGHT // 2
     ball.ball_speed_x, ball.ball_speed_y = 0, 0
 
 # Game loop
@@ -319,18 +365,24 @@ def start():
     goalleft = GoalL()
     ball = Ball()
     circleinmiddle = CircleinMiddle()
+    middleline = MiddleLine()
+    circleinmiddleinside = CircleinMiddleInside()
 
     all_sprites = pg.sprite.Group()
     ball_sprites = pg.sprite.Group()
     goalleft_sprites = pg.sprite.Group()
     goalright_sprites = pg.sprite.Group()
 
+
+    all_sprites.add(middleline)
+    all_sprites.add(circleinmiddle)
+    all_sprites.add(circleinmiddleinside)
     all_sprites.add(playerleft)
     all_sprites.add(playerright)
     all_sprites.add(goalright)
     all_sprites.add(goalleft)
     all_sprites.add(ball)
-    all_sprites.add(circleinmiddle)
+   
     
     goalleft_sprites.add(goalleft)
     goalright_sprites.add(goalright)
@@ -350,14 +402,13 @@ def start():
 
         if goalleft_collided:
             playerright.score += 1
-            reset_positions(playerleft, playerright, goalright, goalleft, ball)
+            reset_mainpositions(playerleft, playerright, goalright, goalleft)
+            reset_ballpositionrightscore(ball)
 
         if goalright_collided:
             playerleft.score += 1
-            reset_positions(playerleft, playerright, goalright, goalleft, ball)
-
-
-      
+            reset_mainpositions(playerleft, playerright, goalright, goalleft)
+            reset_ballpositionleftscore(ball)
 
         #Key and controol
         keys_pressed = pg.key.get_pressed()
